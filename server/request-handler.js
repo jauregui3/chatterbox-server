@@ -19,19 +19,27 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 var http = require('http');
 
+// var results = [];
+var responseResults = {
+  // headers: headers,
+  // method: method,
+  // url: url,
+  results: []
+};
+
 var requestHandler = function(request, response) {
   var headers = defaultCorsHeaders;
   var statusCode = 200;
   var method = request.method;
   var url = request.url;
-  var results = [];
-  var responseResults = {
-    headers: headers,
-    method: method,
-    url: url,
-    results: results
-  };
-  headers['Content-Type'] = 'text/plain';
+  headers['Content-Type'] = 'application/json';
+
+  // var messages = [
+  // {
+  //   text: 'hello world',
+  //   username: 'fred',
+  //   objectId: objectIdCounter
+  // }
 
   // request.on('error', function(err) {
   //   console.error(err);
@@ -47,21 +55,25 @@ var requestHandler = function(request, response) {
   response.statusCode = statusCode;
 
 
-  if (method === 'POST' && url === '/classes/messages') {
+  if (method === 'POST' && (url === '/classes/messages' || url === '/classes/room')) {
     statusCode = 201;
+    var data = '';
     request.on('data', function(chunk) {
-      results.push(JSON.parse(chunk));
-    }).on('end', function() {
+      data += chunk;
+    });
+    request.on('end', function() {
+      responseResults.results.push(JSON.parse(data));
+      console.log(responseResults.results);
       response.writeHead(statusCode, headers);
       response.end(JSON.stringify(responseResults));
-      response.on('error', function(err) {
-        console.error(err);
-      });
+      // response.on('error', function(err) {
+      //   console.error(err);
+      // });
     });
 
     // response.writeHead(statusCode, headers);
     // response.end(JSON.stringify(responseResults));
-  } else if (method === 'GET' && url === '/classes/messages') {
+  } else if (method === 'GET' && url === '/classes/messages' ) {
     statusCode = 200;
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify(responseResults));
@@ -72,7 +84,7 @@ var requestHandler = function(request, response) {
   } else {
     statusCode = 404;
     response.writeHead(statusCode, headers);
-    response.end(JSON.stringify(responseResults));
+    response.end(/*JSON.stringify(responseResults)*/);
   }
 
 
